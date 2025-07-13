@@ -45,7 +45,10 @@ export async function findImages(state: typeof FindImagesAnnotation.State) {
   );
 
   let screenshotUrl: string | undefined;
-  if (!["youtube", "twitter"].includes(getUrlType(link) || "")) {
+  // Skip screenshot for documentation files
+  const isDocsFile =
+    /\.md$|\.html?$/.test(link) || link.includes('/docs/');
+  if (!isDocsFile && !["youtube", "twitter"].includes(getUrlType(link) || "")) {
     screenshotUrl = await takeScreenshotAndUpload(link);
     if (screenshotUrl) {
       imageUrls.add(screenshotUrl);

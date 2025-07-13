@@ -56,7 +56,7 @@ export async function backfillWithLinks() {
   });
 
   const newLinksArr: string[] = [
-    // Add your new links here
+    "https://medium.com/@zaiinn440/attention-is-all-you-need-the-core-idea-of-the-transformer-bbfa9a749937"
   ];
 
   const { thread_id } = await client.threads.create();
@@ -72,4 +72,4 @@ export async function backfillWithLinks() {
   });
 }
 
-// backfillWithLinks().catch(console.error);
+backfillWithLinks().catch(console.error);

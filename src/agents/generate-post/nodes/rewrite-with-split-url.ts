@@ -51,7 +51,7 @@ export async function rewritePostWithSplitUrl(
       },
     ],
     {
-      tool_choice: "rewrite_post",
+      tool_choice: { type: "function", function: { name: "rewrite_post" } },
     },
   );
 

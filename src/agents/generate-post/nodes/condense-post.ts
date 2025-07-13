@@ -11,7 +11,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getPrompts } from "../prompts/index.js";
 
 const CONDENSE_POST_PROMPT = `You're a highly skilled marketer at LangChain, working on crafting thoughtful and engaging content for LangChain's LinkedIn and Twitter pages.
-You wrote a post for the LangChain LinkedIn and Twitter pages, however it's a bit too long for Twitter, and thus needs to be condensed.
+You wrote a post for the LangChain LinkedIn and Twitter pages.
 
 You wrote this marketing report on the content which you used to write the original post:
 <report>
@@ -39,7 +39,7 @@ ${getPrompts().postContentRules}
 
 </rules-and-structure>
 
-Given the marketing report, link, rules and structure, please condense the post down to roughly 280 characters (not including the link). The original post was {originalPostLength} characters long.
+Given the marketing report, link, rules and structure, please make sure the post is maximum 950 characters and less is acceptable also (not including the link and the hashtags and the emojis). The original post was {originalPostLength} characters long.
 Ensure you keep the same structure, and do not omit any crucial content outright.
 
 Follow this flow to rewrite the post in a condensed format:
@@ -47,7 +47,7 @@ Follow this flow to rewrite the post in a condensed format:
 <rewriting-flow>
 1. Carefully read over the report, original post provided by the user below, the rules and structure.
 2. Write down your thoughts about where and how you can condense the post inside <thinking> tags. This should contain details you think will help make the post more engaging, snippets you think can be condensed, etc. This should be the first text you write.
-3. Using all the context provided to you above, the original post, and your thoughts, rewrite the post in a condensed format inside <post> tags. This should be the last text you write.
+3. Using all the context provided to you above, the original post, and your thoughts, rewrite the post in a condensed format inside two <post> tags. This should be the last text you write.
 </rewriting-flow>
 
 Follow all rules and instructions outlined above. The user message below will provide the original post. Remember to have fun while rewriting it! Go!`;

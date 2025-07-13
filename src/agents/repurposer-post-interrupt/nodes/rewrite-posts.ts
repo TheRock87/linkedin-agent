@@ -61,7 +61,7 @@ export async function rewritePost(
       },
     ],
     {
-      tool_choice: "update_post",
+      tool_choice: { type: "function", function: { name: "update_post" } },
     },
   );
 

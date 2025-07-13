@@ -26,7 +26,8 @@ Start with an engaging hook or intriguing reflection about your learning experie
 <section key="2">
 Share a concise narrative about your learning journey or recent project in Machine Learning, Deep Learning, NLP, Computer Vision, or Large Language Models. 
 Highlight key skills developed, important milestones reached, or personal insights gained. Maintain a professional yet slightly informal and reflective tone.
-Optionally use bullet points if mentioning specific courses or technical insights. Aim for clarity and authenticity.
+Try to mention learned skills, and how they can be used in the future. and also how it can benefit the audience.
+Must use bullet points if mentioning specific courses or technical insights. Aim for clarity and authenticity.
 </section>
 
 <section key="3">

@@ -22,11 +22,6 @@ function parseGeneration(generation: string): string {
   return reportMatch ? reportMatch[1].trim() : generation;
 }
 
-const formatReportPrompt = (pageContents: string[]): string => {
-  return `The following text contains summaries, or entire pages from the content I submitted to you. Please review the content and generate a report on it.
-${pageContents.map((content, index) => `<Content index={${index + 1}}>\n${content}\n</Content>`).join("\n\n")}`;
-};
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

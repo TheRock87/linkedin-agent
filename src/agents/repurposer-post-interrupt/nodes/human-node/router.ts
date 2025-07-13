@@ -38,7 +38,7 @@ export async function routeResponse(
       },
     ],
     {
-      tool_choice: "route_response",
+      tool_choice: { type: "function", function: { name: "route_response" } },
     },
   );
 

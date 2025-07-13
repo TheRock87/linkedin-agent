@@ -67,7 +67,7 @@ async function extractContentsFunc(
       },
     ],
     {
-      tool_choice: "extract_content",
+      tool_choice: { type: "function", function: { name: "extract_content" } },
     },
   );
 
