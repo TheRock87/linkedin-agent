@@ -1,6 +1,14 @@
 import { RepurposerState } from "../../types.js";
 import { getUrlContents } from "./get-url-contents.js";
 
+function chunkString(str: string, size: number): string[] {
+  const chunks = [];
+  for (let i = 0; i < str.length; i += size) {
+    chunks.push(str.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function extractContent(
   state: RepurposerState,
 ): Promise<Partial<RepurposerState>> {
@@ -13,9 +21,11 @@ export async function extractContent(
 ${originalContent}
 </original-post-content>`;
 
+  const CHUNK_SIZE = 2000;
+
   if (!state.contextLinks?.length) {
     return {
-      pageContents: [originalContentPrompt],
+      pageContents: chunkString(originalContentPrompt, CHUNK_SIZE),
       imageOptions: imageUrls,
       originalContent,
     };
@@ -45,7 +55,7 @@ ${content}
 </additional-contexts>`;
 
   return {
-    pageContents: [masterPageContent],
+    pageContents: chunkString(masterPageContent, CHUNK_SIZE),
     imageOptions: [
       ...imageUrls,
       ...additionalContexts.flatMap((c) => c.imageUrls || []),
