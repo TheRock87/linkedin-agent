@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { z } from "zod";
 import { formatReportForPrompt } from "../../repurposer/utils.js";
 import {
@@ -48,8 +48,9 @@ export async function rewritePost(
     throw new Error("Can not rewrite posts without user response");
   }
 
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).bindTools(
     [
@@ -71,7 +72,7 @@ export async function rewritePost(
     .replace(
       "{ORIGINAL_POSTS}",
       state.posts
-        .map((p) => `<post index="${p.index}">\n${p.content}\n</post>`)
+        .map((p: any) => `<post index="${p.index}">\n${p.content}\n</post>`)
         .join("\n"),
     )
     .replace("{ORIGINAL_CAMPAIGN_PLAN}", state.campaignPlan)

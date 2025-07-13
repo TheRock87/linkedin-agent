@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { GeneratePostAnnotation } from "../generate-post-state.js";
 import { parseGeneration } from "./generate-post/utils.js";
 import { filterLinksForPostContent, removeUrls } from "../../utils.js";
@@ -6,6 +6,7 @@ import {
   REFLECTIONS_PROMPT,
   getReflectionsPrompt,
 } from "../../../utils/reflections.js";
+// @ts-ignore
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getPrompts } from "../prompts/index.js";
 
@@ -86,13 +87,15 @@ export async function condensePost(
     .replace("{originalPostLength}", originalPostLength)
     .replace("{reflectionsPrompt}", reflectionsPrompt);
 
-  const condensePostModel = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const condensePostModel = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0.5,
   });
 
   const userMessageContent = `Here is the original post:\n\n${state.post}`;
 
+  // @ts-ignore
   const condensePostResponse = await condensePostModel.invoke([
     {
       role: "system",

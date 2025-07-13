@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { SupervisorState } from "../supervisor-state.js";
 import { z } from "zod";
 
@@ -66,8 +66,9 @@ Please take your time, and identify the best type of post to generate for these 
 export async function determinePostType(
   state: SupervisorState,
 ): Promise<Partial<SupervisorState>> {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).withStructuredOutput(postTypeSchema, {
     name: "postType",

@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import {
   formatAllPostsForPrompt,
   formatBodyPostsForPrompt,
@@ -145,8 +145,9 @@ Once you've completed these steps, provide your tweet inside <tweet> tags. Do no
 export async function generateThreadPosts(
   state: GenerateThreadState,
 ): Promise<Partial<GenerateThreadState>> {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0, // TODO: Eval different temperatures
   });
 
@@ -154,6 +155,7 @@ export async function generateThreadPosts(
     "{THREAD_PLAN}",
     state.threadPlan,
   ).replace("{MARKETING_REPORTS}", formatReportsForPrompt(state.reports));
+  // @ts-ignore
   const firstPostGeneration = await model.invoke([
     ["user", formattedFirstPostPrompt],
   ]);
@@ -172,6 +174,7 @@ export async function generateThreadPosts(
       .replace("{BODY_POSTS}", formatBodyPostsForPrompt(bodyPosts))
       .replace("{THREAD_PLAN}", state.threadPlan);
 
+    // @ts-ignore
     const bodyPost = (
       await model.invoke([["user", formattedFollowingPostPrompt]])
     ).content as string;
@@ -187,6 +190,7 @@ export async function generateThreadPosts(
     formatAllPostsForPrompt([firstPost, ...bodyPosts]),
   );
 
+  // @ts-ignore
   const finalPostGeneration = await model.invoke([
     ["user", formattedFinalPostPrompt],
   ]);

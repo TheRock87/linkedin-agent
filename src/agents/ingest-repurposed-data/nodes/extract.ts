@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { IngestRepurposedDataState, RepurposedContent } from "../types.js";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { isValidUrl } from "../../utils.js";
 import { traceable } from "langsmith/traceable";
 import { DEFAULT_POST_QUANTITY } from "../constants.js";
-import { MessageContentText } from "@langchain/core/messages";
 import { getPublicFileUrls } from "../../../clients/slack/utils.js";
 
 const EXTRACT_CONTENT_PROMPT = `You're a helpful AI assistant, tasked with extracting content from a Slack message.
@@ -55,8 +54,9 @@ const extractionSchema = z.object({
 async function extractContentsFunc(
   messageText: string,
 ): Promise<Omit<RepurposedContent, "attachmentUrls"> | undefined> {
-  const model = new ChatAnthropic({
-    model: "claude-3-7-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).bindTools(
     [
@@ -115,8 +115,9 @@ export async function extract(
       typeof message.content === "string"
         ? message.content
         : message.content
+            // @ts-ignore
             .filter((c) => c.type === "text" && "text" in c)
-            .map((c: MessageContentText) => c.text)
+            .map((c: any) => c.text)
             .join(" ");
     const content = await extractContents(messageText);
     if (content) {

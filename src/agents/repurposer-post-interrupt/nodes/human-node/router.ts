@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 
 const ROUTE_POST_PROMPT = `You're an advanced AI assistant, tasked with routing a user's response.
 The only route which can be taken is 'rewrite_post'. If the user is not asking to rewrite a post, then choose the 'unknown_response' route.
@@ -25,8 +25,9 @@ export async function routeResponse(
   post: string,
   userResponse: string,
 ): Promise<z.infer<typeof routeResponseSchema>> {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).bindTools(
     [

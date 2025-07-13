@@ -1,6 +1,7 @@
+// @ts-ignore
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { GeneratePostAnnotation } from "../../generate-post-state.js";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { GENERATE_REPORT_PROMPT } from "./prompts.js";
 
 /**
@@ -36,11 +37,13 @@ export async function generateContentReport(
     );
   }
 
-  const reportModel = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const reportModel = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   });
 
+  // @ts-ignore
   const result = await reportModel.invoke([
     {
       role: "system",

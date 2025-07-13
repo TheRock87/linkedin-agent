@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { traceable } from "langsmith/traceable";
 import { z } from "zod";
 
@@ -24,8 +24,9 @@ async function verifyContentIsRelevantFunc(
     schema: z.ZodType<z.infer<typeof RELEVANCY_SCHEMA>>;
   },
 ): Promise<boolean> {
-  const relevancyModel = new ChatAnthropic({
-    model: "claude-3-7-sonnet-latest",
+  const relevancyModel = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).withStructuredOutput(args.schema, {
     name: "relevancy",

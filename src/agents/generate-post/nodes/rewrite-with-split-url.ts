@@ -3,7 +3,7 @@ import {
   GeneratePostState,
   GeneratePostUpdate,
 } from "../generate-post-state.js";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 
 const postSchema = z.object({
   main_post: z
@@ -37,8 +37,9 @@ Please split it into the two unique posts. Ensure the ONLY modification you make
 export async function rewritePostWithSplitUrl(
   state: GeneratePostState,
 ): Promise<GeneratePostUpdate> {
-  const postModel = new ChatAnthropic({
-    model: "claude-3-7-sonnet-latest",
+  const postModel = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).bindTools(
     [

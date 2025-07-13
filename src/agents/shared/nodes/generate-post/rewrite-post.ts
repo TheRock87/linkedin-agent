@@ -1,7 +1,9 @@
+// @ts-ignore
 import { Client } from "@langchain/langgraph-sdk";
+// @ts-ignore
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { BaseGeneratePostState, BaseGeneratePostUpdate } from "./types.js";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import {
   getReflectionsPrompt,
   REFLECTIONS_PROMPT,
@@ -59,8 +61,9 @@ export async function rewritePost<
     throw new Error("No user response found");
   }
 
-  const rewritePostModel = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const rewritePostModel = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0.5,
   });
 
@@ -75,6 +78,7 @@ export async function rewritePost<
     state.post,
   ).replace("{reflectionsPrompt}", reflectionsPrompt);
 
+  // @ts-ignore
   const revisePostResponse = await rewritePostModel.invoke([
     {
       role: "system",

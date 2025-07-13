@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { getPrompts } from "../../generate-post/prompts/index.js";
 import { RepurposerState } from "../types.js";
 import { z } from "zod";
@@ -95,8 +95,9 @@ export async function generatePosts(
       ),
   });
 
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0.5,
   }).bindTools([
     {

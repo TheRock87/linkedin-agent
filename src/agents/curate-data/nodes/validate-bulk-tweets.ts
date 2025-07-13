@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { CurateDataState } from "../state.js";
 import { z } from "zod";
 import { chunkArray } from "../../utils.js";
@@ -143,13 +143,14 @@ function formatTweets(tweets: TweetV2[]): string {
 export async function validateBulkTweets(
   state: CurateDataState,
 ): Promise<Partial<CurateDataState>> {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  const model = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || (() => { throw new Error('GROQ_MODEL env variable is required'); })(),
     temperature: 0,
   }).withStructuredOutput(answerSchema, { name: "answer" });
 
   // Chunk the tweets into groups of 25
-  const chunkedTweets = chunkArray(state.rawTweets, 25);
+  const chunkedTweets = chunkArray(state.rawTweets, 25) as TweetV2[][];
   const allRelevantTweets: TweetV2[] = [];
 
   for (const chunk of chunkedTweets) {
@@ -161,7 +162,7 @@ export async function validateBulkTweets(
     const { answer } = await model.invoke([["user", formattedPrompt]]);
 
     const answerSet = new Set(answer);
-    const relevantTweets = chunk.filter((_, index) => answerSet.has(index));
+    const relevantTweets = chunk.filter((_: any, index: any) => answerSet.has(index)) as TweetV2[];
     if (relevantTweets.length !== answer.length) {
       console.warn(
         `Expected ${answer.length} relevant tweets, but found ${relevantTweets.length}`,
