@@ -1,5 +1,53 @@
 # Social Media Agent
 
+# 🚀 New: Centralized Config & Automated Workflow
+
+This project now supports a fully automated, config-driven workflow for generating social media posts. All flows and scripts read from a single `config.json` at the project root, and track used URLs in `used-urls.json`.
+
+## How it works
+
+- **config.json**: List your URLs and choose the post generation mode ("single" or "multiple").
+- **used-urls.json**: Tracks which URLs have already been posted, so you never post the same link twice.
+- **run_full_workflow.sh**: One command to launch the LangGraph server, run the workflow, and see live logs and results.
+
+## Example config.json
+```json
+{
+  "urls": [
+    "https://example.com/1",
+    "https://example.com/2"
+  ],
+  "mode": "single" // or "multiple"
+}
+```
+- `mode: "single"` → one post for all URLs
+- `mode: "multiple"` → one post per URL
+
+## How to use
+1. Edit `config.json` in the project root with your URLs and desired mode.
+2. Run:
+   ```bash
+   ./run_full_workflow.sh
+   ```
+   This will:
+   - Start the LangGraph server (in-memory mode, no Docker required)
+   - Wait for the server to be ready
+   - Run the post generation workflow (using your config)
+   - Show live logs and drop you into a shell for further commands
+3. To stop the server, run:
+   ```bash
+   kill <PID>
+   ```
+   (PID is shown in the script output)
+
+## Benefits
+- **No more hardcoding URLs**: Just edit `config.json`.
+- **No duplicate posts**: `used-urls.json` ensures each URL is only posted once.
+- **Unified workflow**: All flows/scripts use the same config and tracking.
+- **Easy automation**: One script to run everything, with live logs and shell access.
+
+---
+
 This repository contains an 'agent' which can take in a URL, and generate a Twitter & LinkedIn post based on the content of the URL. It uses a human-in-the-loop (HITL) flow to handle authentication with different social media platforms, and to allow the user to make changes, or accept/reject the generated post.
 
 ![Screenshot of the social media agent flow](./static/agent_flow.png)

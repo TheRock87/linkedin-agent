@@ -1,3 +1,13 @@
+// Usage:
+// Reads URLs and mode from config.json at the project root:
+//   {
+//     "urls": ["https://example.com/1", "https://example.com/2"],
+//     "mode": "single" // or "multiple"
+//   }
+// Tracks used URLs in used-urls.json at the project root.
+//
+// This logic is only used if the file is run directly (not as a module).
+
 import {
   END,
   LangGraphRunnableConfig,
@@ -19,19 +29,34 @@ async function generatePostsFromMessages(
   state: IngestRepurposedDataState,
   config: LangGraphRunnableConfig,
 ) {
+  /**
+   * Supports two modes:
+   * - mode: 'single'   => one post for all links in all contents
+   * - mode: 'multiple' => one post per content (default)
+   * Set mode in config.configurable.mode
+   */
   const client = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
   });
 
   const postToLinkedInOrg = shouldPostToLinkedInOrg(config);
+  const mode = config.configurable?.mode || "multiple";
 
-  for await (const content of state.contents) {
+  if (mode === "single") {
+    // One post for all links in all contents
+    let allLinks: string[] = [];
+    for (const content of state.contents) {
+      if (content.originalLink) allLinks.push(content.originalLink);
+      if (content.additionalContextLinks?.length) {
+        allLinks = allLinks.concat(content.additionalContextLinks);
+      }
+    }
     const thread = await client.threads.create();
     await client.runs.create(thread.thread_id, "repurposer", {
       input: {
-        originalLink: content.originalLink,
-        contextLinks: content.additionalContextLinks,
-        quantity: content.quantity,
+        originalLink: allLinks[0] || "",
+        contextLinks: allLinks.slice(1),
+        quantity: 1,
       },
       config: {
         configurable: {
@@ -39,6 +64,23 @@ async function generatePostsFromMessages(
         },
       },
     });
+  } else {
+    // One post per content (default)
+    for await (const content of state.contents) {
+      const thread = await client.threads.create();
+      await client.runs.create(thread.thread_id, "repurposer", {
+        input: {
+          originalLink: content.originalLink,
+          contextLinks: content.additionalContextLinks,
+          quantity: content.quantity,
+        },
+        config: {
+          configurable: {
+            [POST_TO_LINKEDIN_ORGANIZATION]: postToLinkedInOrg,
+          },
+        },
+      });
+    }
   }
   return {};
 }

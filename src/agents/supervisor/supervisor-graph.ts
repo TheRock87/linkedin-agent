@@ -60,7 +60,7 @@ const supervisorWorkflow = new StateGraph(
   .addNode("generateReport", generateReportGraph)
   .addNode("groupReports", groupReports)
   .addNode("determinePostType", determinePostType)
-  .addNode("generatePosts", generatePosts)
+  .addNode("generatePosts", generatePosts as any)
 
   .addEdge(START, "ingestData")
   .addConditionalEdges("ingestData", startGenerateReportRuns, [

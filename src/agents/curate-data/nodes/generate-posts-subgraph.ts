@@ -1,3 +1,13 @@
+// Usage:
+// Reads URLs and mode from config.json at the project root:
+//   {
+//     "urls": ["https://example.com/1", "https://example.com/2"],
+//     "mode": "single" // or "multiple"
+//   }
+// Tracks used URLs in used-urls.json at the project root.
+//
+// This logic is only used if the file is run directly (not as a module).
+
 import { Client } from "@langchain/langgraph-sdk";
 import { CurateDataState } from "../state.js";
 import { getTweetLink } from "../../../clients/twitter/utils.js";
@@ -113,21 +123,29 @@ export async function generatePostsSubgraph(
   state: CurateDataState,
   config: LangGraphRunnableConfig,
 ): Promise<Partial<CurateDataState>> {
+  /**
+   * Supports two modes:
+   * - mode: 'single'   => one post for all links
+   * - mode: 'multiple' => one post per link (default)
+   * Set mode in config.configurable.mode
+   */
   const postToLinkedInOrg = shouldPostToLinkedInOrg(config);
+  const mode = config.configurable?.mode || "multiple";
 
   const client = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
   });
 
   const afterSecondsList = getAfterSeconds(state);
-
   const threadRunIds: ThreadRunId[] = [];
 
-  for (const { link, afterSeconds } of afterSecondsList) {
+  if (mode === "single") {
+    // One post for all links
+    const allLinks = afterSecondsList.map(({ link }) => link);
     const { thread_id } = await client.threads.create();
     const { run_id } = await client.runs.create(thread_id, "generate_post", {
       input: {
-        links: [link],
+        links: allLinks,
       },
       config: {
         configurable: {
@@ -135,9 +153,28 @@ export async function generatePostsSubgraph(
           origin: "curate-data",
         },
       },
-      afterSeconds,
+      // Use the first afterSeconds for scheduling, or 0 if none
+      afterSeconds: afterSecondsList[0]?.afterSeconds || 0,
     });
     threadRunIds.push({ thread_id, run_id });
+  } else {
+    // One post per link (default)
+    for (const { link, afterSeconds } of afterSecondsList) {
+      const { thread_id } = await client.threads.create();
+      const { run_id } = await client.runs.create(thread_id, "generate_post", {
+        input: {
+          links: [link],
+        },
+        config: {
+          configurable: {
+            [POST_TO_LINKEDIN_ORGANIZATION]: postToLinkedInOrg,
+            origin: "curate-data",
+          },
+        },
+        afterSeconds,
+      });
+      threadRunIds.push({ thread_id, run_id });
+    }
   }
 
   await sendSlackNotification(state, config);

@@ -1,3 +1,13 @@
+// Usage:
+// Reads URLs and mode from config.json at the project root:
+//   {
+//     "urls": ["https://example.com/1", "https://example.com/2"],
+//     "mode": "single" // or "multiple"
+//   }
+// Tracks used URLs in used-urls.json at the project root.
+//
+// This logic is only used if the file is run directly (not as a module).
+
 import {
   END,
   LangGraphRunnableConfig,
@@ -28,6 +38,12 @@ async function generatePostFromMessages(
   state: typeof IngestDataAnnotation.State,
   config: LangGraphRunnableConfig,
 ) {
+  /**
+   * Supports two modes:
+   * - mode: 'single'   => one post for all links
+   * - mode: 'multiple' => one post per link (default)
+   * Set mode in config.configurable.mode
+   */
   const client = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
   });
@@ -39,12 +55,15 @@ async function generatePostFromMessages(
     config?.configurable,
   );
   const shouldSkipUsedUrlsCheck = await skipUsedUrlsCheck(config?.configurable);
+  const mode = config.configurable?.mode || "multiple";
 
-  for await (const { link, afterSeconds } of linkAndDelay) {
+  if (mode === "single") {
+    // One post for all links
+    const allLinks = linkAndDelay.map(({ link }) => link);
     const thread = await client.threads.create();
     await client.runs.create(thread.thread_id, "generate_post", {
       input: {
-        links: [link],
+        links: allLinks,
       },
       config: {
         configurable: {
@@ -54,8 +73,27 @@ async function generatePostFromMessages(
           [SKIP_USED_URLS_CHECK]: shouldSkipUsedUrlsCheck,
         },
       },
-      afterSeconds,
+      afterSeconds: linkAndDelay[0]?.afterSeconds || 0,
     });
+  } else {
+    // One post per link (default)
+    for await (const { link, afterSeconds } of linkAndDelay) {
+      const thread = await client.threads.create();
+      await client.runs.create(thread.thread_id, "generate_post", {
+        input: {
+          links: [link],
+        },
+        config: {
+          configurable: {
+            [POST_TO_LINKEDIN_ORGANIZATION]: postToLinkedInOrg,
+            [TEXT_ONLY_MODE]: isTextOnlyMode,
+            [SKIP_CONTENT_RELEVANCY_CHECK]: shouldSkipContentRelevancyCheck,
+            [SKIP_USED_URLS_CHECK]: shouldSkipUsedUrlsCheck,
+          },
+        },
+        afterSeconds,
+      });
+    }
   }
   return {};
 }
